@@ -1,0 +1,146 @@
+package electricbill;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+public class ElectricBill3 {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        //Initialize variables
+        boolean validKW = false, validDate = false;
+        String name, MeterDate, input = "";
+        double KWused = 0, BaseCharge = 0, OverBaseCharge = 0, ExcessCharge = 0, KWCost = 0, Total = 0, OverUp = .1, ExcessUp = .25;
+        
+        System.out.printf("%-7s %10s\n","", "Southwest Power & Light");
+        System.out.printf("%-10s %10s\n","", "Billing Statement");
+        System.out.println();
+        
+        Scanner scan = new Scanner(System.in);
+        //Get current date from clock for timestamp
+        Date now = new Date();        
+        //create a date template for timestamp
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        System.out.println("Date: " + sdf.format(now));        
+        
+        //prompt for name
+        System.out.print("Please enter your name (Last, First I.) > ");
+        name = scan.nextLine();             
+       
+        //reinitialize scanner
+       scan = new Scanner(System.in);
+       while (!validDate)
+        {
+            try
+            {
+               //Prompt for date of meter reading
+               System.out.print("Meter reading date : (mm/dd/yyyy)");
+               input = scan.nextLine();
+               
+               SimpleDateFormat sdf2 = new SimpleDateFormat("M/d/yyyy");
+               sdf2.setLenient(false);
+               //Try to parse the date
+               sdf2.parse(input);
+               validDate = true;
+            }
+            catch (Exception e)
+            {
+               System.out.println("Date is NOT valid!");
+            }
+        }
+        //Pull out Month from data entered for extra charge calcs...
+        scan = new Scanner(input);
+        scan.useDelimiter("/");
+        int month, day, year;        
+        month = scan.nextInt();
+       
+        //reinitialize scanner for KW usage
+       scan = new Scanner(System.in);
+       while (!validKW)
+       {
+            //Try-Catch
+            try
+            {
+                //Get Kw used
+                System.out.print("KW Used> ");
+                KWused = scan.nextDouble();
+
+                validKW = true;
+            }
+            catch (Exception e)
+            { 
+                System.out.println("Not a valid number, please try again > ");
+                scan.next();
+            }
+        }
+       //Determine what bracket KW usage falls into
+       //My vars BaseCharge, OverBaseCharge, ExcessCharge
+       if (KWused >= 350)
+        {
+            if ( KWused <= 500)
+            {
+                BaseCharge = 350;
+                OverBaseCharge = KWused - 350;
+                ExcessCharge = 0;
+            }
+            
+            else
+            {
+                BaseCharge = 350;
+                OverBaseCharge = 500 - 350;
+                ExcessCharge = KWused - 500;
+            }
+        }
+       else
+       {
+           BaseCharge = KWused;
+           OverBaseCharge = 0;
+           ExcessCharge = 0;
+       }
+       
+        
+        //Chose what Kw cost to apply depending upon month
+        if (month < 12 & month >= 3)
+            {
+                if (month >= 3 & month <= 5)
+                {
+                    KWCost = 0.12;
+                }
+                else
+                {
+                    KWCost = 0.15;
+                }
+            }
+        else
+            {
+                KWCost = 0.10;
+            }
+        
+       //Calculate the costs
+       BaseCharge = BaseCharge * KWCost;
+       OverBaseCharge = OverBaseCharge*KWCost + (OverBaseCharge * KWCost*OverUp);
+       ExcessCharge= ExcessCharge*KWCost + (ExcessCharge*KWCost*ExcessUp);
+       
+       //Round the numbers and total them up
+       BaseCharge = Math.round(BaseCharge*100)/100d;
+       OverBaseCharge = Math.round(OverBaseCharge*100)/100d;
+       ExcessCharge = Math.round(ExcessCharge*100)/100d;
+       Total = BaseCharge + OverBaseCharge + ExcessCharge;
+       
+       //Initialize Currency stuff
+       NumberFormat currency = NumberFormat.getCurrencyInstance();
+       
+       //Display stuff!
+       //Apply template and print result  
+       System.out.println();
+       System.out.printf("%-30s %-7s\n", "Baseline Charge >", currency.format(BaseCharge));       
+       System.out.printf("%-30s %-7s\n", "Over-Baseline Charge >"  , currency.format(OverBaseCharge));      
+       System.out.printf("%-30s %-7s\n", "Excesse Charge >"  , currency.format(ExcessCharge));
+       System.out.printf("%-30s %-7s\n", "Total amount due:"  , currency.format(Total));
+       System.out.println();
+       System.out.printf("%-7s %10s\n","", "Thank you for letting us take your money!");
+       
+    }    
+}
